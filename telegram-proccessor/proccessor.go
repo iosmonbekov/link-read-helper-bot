@@ -6,8 +6,8 @@ import (
 	"link-saver-bot/storage"
 	errorstorage "link-saver-bot/storage/error-storage"
 	"math/rand"
+	"net/url"
 	"os"
-	"regexp"
 	"strings"
 	"time"
 )
@@ -145,9 +145,9 @@ func (p *TelegramProccessor) Proccess(updates []client.Update) error {
 }
 
 func checkURL(text string) bool {
-	// Regular expression pattern for URL validation
-	pattern := `^(http[s]?|ftp):\/{2}([^\s:@]+:[^\s:@]*@)?([^\s:\/?]+)(?::(\d+))?((\/\w+)*\/)([\w\-\.]+[^#?\s]+)([^#\s]*)?(#[\w\-]+)?$`
-
-	regex := regexp.MustCompile(pattern)
-	return regex.MatchString(text)
+	_, err := url.ParseRequestURI(text)
+	if err != nil {
+		return false
+	}
+	return true
 }
