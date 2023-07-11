@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"link-saver-bot/client"
 	"link-saver-bot/storage"
+	errorstorage "link-saver-bot/storage/error-storage"
 	"math/rand"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -26,6 +28,8 @@ func (p *TelegramProccessor) Start() error {
 	offset := 0
 	limit := 100
 
+	errorStorage := errorstorage.New("error-loger", 20)
+
 	for {
 		updates, err := p.Client.FetchUpdates(offset, limit)
 		if err != nil {
@@ -40,9 +44,17 @@ func (p *TelegramProccessor) Start() error {
 
 		if err := p.Proccess(updates); err != nil {
 			fmt.Printf("telegram_proccessor.Start: error on p.Proccess -> %v\n", err)
+
+			errorStorage.Errors = append(errorStorage.Errors, err.Error())
+			if len(errorStorage.Errors) >= int(errorStorage.Limit()) {
+				errorStorage.Save([]byte(strings.Join(errorStorage.Errors, "\n")))
+				fmt.Printf("Error count reached -> %v\n", errorStorage.Limit())
+				os.Exit(1)
+			}
 			continue
 		}
 
+		errorStorage.Errors = []string{}
 		offset = updates[len(updates)-1].UpdateId + 1
 	}
 }

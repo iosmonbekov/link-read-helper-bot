@@ -4,24 +4,22 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 )
 
 type ErrorStorage struct {
 	limit  byte
 	root   string
-	Errors []error
+	Errors []string
 }
 
 func New(path string, limit byte) ErrorStorage {
 	return ErrorStorage{
-		limit:  limit,
-		root:   "__" + path,
-		Errors: []error{},
+		limit: limit,
+		root:  "__" + path,
 	}
 }
 
-func (s ErrorStorage) Save() error {
+func (s ErrorStorage) Save(content []byte) error {
 	filePath := s.root + ".txt"
 
 	_, err := os.Stat(filePath)
@@ -31,31 +29,11 @@ func (s ErrorStorage) Save() error {
 		}
 	}
 
-	content := []string{}
-
-	for _, e := range s.Errors {
-		content = append(content, e.Error())
-	}
-
-	if err := ioutil.WriteFile(filePath, []byte(strings.Join(content, "\n")), 0644); err != nil {
+	if err := ioutil.WriteFile(filePath, content, 0644); err != nil {
 		return fmt.Errorf("error_storage.Save: error on ioutil.WriteFile -> %v\n", err)
 	}
 
 	return nil
-}
-
-func (s ErrorStorage) Append(err error) {
-	if len(s.Errors) == 0 {
-		s.Errors = append([]error{}, err)
-		return
-	}
-
-	if s.Errors[0].Error() == err.Error() {
-		s.Errors = append(s.Errors, err)
-		return
-	} else {
-		s.Errors = append([]error{}, err)
-	}
 }
 
 func (s ErrorStorage) Limit() byte {
