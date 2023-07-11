@@ -145,9 +145,14 @@ func (p *TelegramProccessor) Proccess(updates []client.Update) error {
 }
 
 func checkURL(text string) bool {
-	_, err := url.ParseRequestURI(text)
+	parsedURL, err := url.Parse(text)
 	if err != nil {
 		return false
 	}
+
+	if parsedURL.Scheme == "" || parsedURL.Host == "" {
+		return false
+	}
+
 	return true
 }
