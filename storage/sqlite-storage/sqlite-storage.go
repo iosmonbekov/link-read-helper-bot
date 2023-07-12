@@ -24,7 +24,7 @@ func New(path string) (*Storage, error) {
 }
 
 func (s *Storage) Save(username string, content []byte) error {
-	_, err := s.db.Exec("REPLACE INTO storage(username, content) VALUES(?, ?)", username, content)
+	_, err := s.db.Exec("REPLACE INTO storage(username, content) VALUES(?, ?)", username, string(content))
 	if err != nil {
 		return fmt.Errorf("sqlitestorage.Save: error on db.Exec -> %v\n", err)
 	}
@@ -32,7 +32,7 @@ func (s *Storage) Save(username string, content []byte) error {
 }
 
 func (s *Storage) Load(username string) ([]byte, error) {
-	var content []byte
+	var content string
 	err := s.db.QueryRow("SELECT content FROM storage WHERE username=?", username).Scan(&content)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -40,7 +40,8 @@ func (s *Storage) Load(username string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("sqlitestorage.Load: error on db.QueryRow -> %v\n", err)
 	}
-	return content, nil
+
+	return []byte(content), nil
 }
 
 func (s *Storage) Remove(username string) error {
@@ -52,7 +53,7 @@ func (s *Storage) Remove(username string) error {
 }
 
 func (s *Storage) Init() error {
-	q := `CREATE TABLE IF NOT EXISTS storage (username TEXT PRIMARY KEY, content BLOB)`
+	q := `CREATE TABLE IF NOT EXISTS storage (username TEXT PRIMARY KEY, content TEXT)`
 
 	_, err := s.db.Exec(q)
 	if err != nil {
