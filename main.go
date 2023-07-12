@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	telegram_client "link-saver-bot/client/telegram-client"
-	telegram_storage "link-saver-bot/storage/telegram-storage"
+	sqlitestorage "link-saver-bot/storage/sqlite-storage"
 	telegram_proccessor "link-saver-bot/telegram-proccessor"
 	"log"
 	"os"
@@ -12,11 +12,17 @@ import (
 
 func main() {
 	tgClient := telegram_client.New("https://api.telegram.org", mustToken())
-	tgStorage, err := telegram_storage.New("link-saver-bot")
+	// tgStorage, err := telegram_storage.New("link-saver-bot")
+	// if err != nil {
+	// 	fmt.Printf("main: error on telegram_storage.New -> %v\n", err)
+	// 	os.Exit(1)
+	// }
+	tgStorage, err := sqlitestorage.New("link-saver-bot-sql-storage.db")
 	if err != nil {
 		fmt.Printf("main: error on telegram_storage.New -> %v\n", err)
 		os.Exit(1)
 	}
+	tgStorage.Init()
 
 	proccessor := telegram_proccessor.New(tgClient, tgStorage)
 

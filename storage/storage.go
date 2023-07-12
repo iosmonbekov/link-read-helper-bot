@@ -1,7 +1,7 @@
 package storage
 
 type Storage interface {
-	Save(fileName string, content []byte) error
-	Load(fileName string) ([]byte, error)
-	Remove(fileName string) error
+	Save(username string, content []byte) error
+	Load(username string) ([]byte, error)
+	Remove(username string) error
 }
